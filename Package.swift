@@ -13,5 +13,10 @@ let package = Package(
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]),
+        .plugin(
+            name: "QliftUICPlugin",
+            capability: .buildTool(),
+            dependencies: ["qlift-uic"]
+        ),
     ]
 )
