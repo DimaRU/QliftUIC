@@ -10,7 +10,7 @@ Splitted from main QLift repo.
 Add dependency to your swift package manifest: 
 ```swift
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.0"),
+        .package(url: "https://github.com/DimaRU/QliftUIC", branch: "master"),
     ],
 
 ```
