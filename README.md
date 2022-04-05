@@ -16,7 +16,9 @@ Add dependency to your swift package manifest:
 ```
 Then add plugin to target declaration:
 ```swift
-.plugin(name: "QliftUICPlugin", capability: .buildTool(), dependencies: ["qlift-uic"])
+plugins: [
+    .plugin(name: "QliftUICPlugin", package: "QliftUIC"),
+]
 ```
 and .ui files to your target. These files will be automatically converted to .swift during build process. 
 
