@@ -127,13 +127,11 @@ public class QliftUIParser: NSObject {
                 let sender = connection.children[0].value
                 let signalWithBraces = connection.children[1].value.capitalized
                 let signal = signalWithBraces.prefix { $0 != "(" }
-                var receiver = connection.children[2].value
-                if receiver == className {
-                    receiver = "self"
-                }
+                let receiver = connection.children[2].value
+                let receiverObject = receiver == className ? "self" : receiver
                 let slotWithBraces = connection.children[3].value
                 let slot = slotWithBraces.prefix { $0 != "(" }
-                swiftUI += "        \(sender).connect\(signal)(to: \(receiver).\(slot))\n"
+                swiftUI += "        \(sender).connect\(signal)(target: \(receiverObject), to: \(receiver).\(slot))\n"
             }
         }
 
