@@ -17,7 +17,7 @@ struct QliftUIC: ParsableCommand {
     @Flag(name: .shortAndLong, help: "Verbose output")
     var verbose = false
 
-    @Option(name: .shortAndLong, help: ArgumentHelp("The the output path to write generated .swift files.",
+    @Option(name: .shortAndLong, help: ArgumentHelp("The output path for generated .swift files.",
                                                     discussion: "By default generated files written to current directory.",
                                                     valueName: "path"))
     var outputDirectory: String?

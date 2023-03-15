@@ -54,7 +54,7 @@ ARGUMENTS:
 OPTIONS:
   -v, --verbose           Verbose output
   -o, --output-directory <path>
-                          The the output path to write generated .swift files.
+                          The output path for generated .swift files.
         By default generated files written to current directory.
   --version               Show the version.
   -h, --help              Show help information.
