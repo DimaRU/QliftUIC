@@ -296,7 +296,7 @@ public class QliftUIParser: NSObject {
                     case 15?: area = ".All"
                     default:
                         area = ""
-                        print("Unknown dock area")
+                        print("Unknown dock area", to: &stderror)
                 }
                 ui += "        \(node.parent!.attributes["name"]!).add(dockWidget: \(node.attributes["name"]!), area: \(area))\n"
 
@@ -478,7 +478,7 @@ public class QliftUIParser: NSObject {
                     case "height":
                         height = Int(child.value)!
                     default:
-                        print("unknown rect:", child.text)
+                        print("unknown rect:", child.text, to: &stderror)
                 }
             }
             return "QRect(x: \(x), y: \(y), width: \(width), height: \(height))"
@@ -493,7 +493,7 @@ public class QliftUIParser: NSObject {
                 case "height":
                     height = Int(child.value)!
                 default:
-                    print("unknown size:", child.text)
+                    print("unknown size:", child.text, to: &stderror)
                 }
             }
             return "QSize(width: \(width), height: \(height))"

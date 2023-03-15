@@ -37,7 +37,7 @@ struct QliftUIC: ParsableCommand {
         do {
             try fileManager.createDirectory(at: outputURL, withIntermediateDirectories: true)
         } catch {
-            print("Can't create output directory \(outputURL.path): \(error.localizedDescription)")
+            print("Can't create output directory \(outputURL.path): \(error.localizedDescription)", to: &stderror)
             throw ExitCode.failure
         }
         

@@ -6,13 +6,13 @@ func processFile(input: URL, output: URL, verbose: Bool) throws {
     do {
         xml =  try Data(contentsOf: input)
     } catch {
-        print("Error read \(input.path): \(error.localizedDescription)")
+        print("Error read \(input.path): \(error.localizedDescription)", to: &stderror)
         throw ExitCode.failure
     }
 
     let parser = QliftUIParser()
     guard let ui = parser.parseUI(data: xml) else {
-        print("XML invalid: \(input.path)")
+        print("XML invalid: \(input.path)", to: &stderror)
         throw ExitCode.failure
     }
     
@@ -32,7 +32,7 @@ func processFile(input: URL, output: URL, verbose: Bool) throws {
     do {
         try content.write(to: output, atomically: false, encoding: .utf8)
     } catch  {
-        print("Write error \(output.path) \(error.localizedDescription)")
+        print("Write error \(output.path) \(error.localizedDescription)", to: &stderror)
         throw ExitCode.failure
     }
     if verbose {
