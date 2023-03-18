@@ -28,14 +28,19 @@ public class QliftUIParser: NSObject {
     private var namesOfQMenusForAddAction = [String]()
     private var widgetCount = 1
     private var tabTitle = ""
+    private var localizable = false
+    private var lstrings: [String: String] = [:]
+    private var fileName: String = ""
 
-
-    public func parseUI(data: Data) -> String? {
+    public func parseUI(data: Data, fileName: String, localizable: Bool) -> (String?, [String: String]) {
+        self.localizable = localizable
+        self.fileName = fileName
         let parser = XMLParser(data: data)
         parser.delegate = self
 
-        guard parser.parse() else { return nil }
-        return node2Swift(node: rootNode)
+        guard parser.parse() else { return (nil, [:]) }
+        let swiftCode = node2Swift(node: rootNode)
+        return (swiftCode, lstrings)
     }
 
     private func node2Swift(node: Node) -> String {
@@ -434,9 +439,31 @@ public class QliftUIParser: NSObject {
 
     private func propertyNode2Swift(node: Node) -> String {
         switch node.text {
-        case "string", "pixmap":
-            if node.attributes.first?.key == "notr" &&
-                node.attributes.first?.value == "true" ||
+        case "string":
+            guard
+                localizable,
+                node.attributes["notr"] != "true",
+                !node.value.isEmpty
+            else { fallthrough }
+            if node.value.rangeOfCharacter(from: .controlCharacters, options: .literal) != nil {
+                print("Translatable string contains control characters", to: &stderror)
+                fallthrough
+            }
+            if let comment = node.attributes["extracomment"] ?? node.parent?.parent?.attributes["name"] {
+                if let oldComment = lstrings[node.value] {
+                    lstrings[node.value] = oldComment + ", " + comment
+                } else {
+                    lstrings[node.value] = comment
+                }
+                return "NSLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", bundle: Bundle.lang, comment: \"\(comment)\")"
+            } else {
+                if lstrings[node.value] == nil {
+                    lstrings[node.value] = ""
+                }
+                return "NSLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", bundle: Bundle.lang)"
+            }
+        case "pixmap":
+            if node.value.contains("\n") ||
                 node.value.contains("\"")
             {
                 return "\"\"\"\n" + node.value + "\n\"\"\""

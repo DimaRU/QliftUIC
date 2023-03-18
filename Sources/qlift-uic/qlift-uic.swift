@@ -17,9 +17,16 @@ struct QliftUIC: ParsableCommand {
     @Flag(name: .shortAndLong, help: "Verbose output")
     var verbose = false
 
-    @Option(name: .shortAndLong, help: ArgumentHelp("The output path for generated .swift files.",
-                                                    discussion: "By default generated files written to current directory.",
-                                                    valueName: "path"))
+    @Flag(name: .shortAndLong, help: "Generate localizable code")
+    var localizable = false
+
+    @Flag(name: .shortAndLong, help: "Generate .strings files")
+    var strings = false
+
+    @Option(name: .shortAndLong,
+            help: ArgumentHelp("The output path for generated files.",
+            discussion: "By default generated files written to current directory.",
+            valueName: "path"))
     var outputDirectory: String?
 
 
@@ -41,10 +48,17 @@ struct QliftUIC: ParsableCommand {
             throw ExitCode.failure
         }
         
+        if strings {
+            localizable = true
+        }
         for input in file {
-            let outputFile = input.deletingPathExtension().appendingPathExtension("swift").lastPathComponent
+            let outputFile = input.deletingPathExtension().lastPathComponent
             let output = outputURL.appendingPathComponent(outputFile)
-            try processFile(input: input, output: output, verbose: verbose)
+            try processFile(input: input,
+                            output: output,
+                            verbose: verbose,
+                            localizable: localizable,
+                            strings: strings)
         }
     }
 }
