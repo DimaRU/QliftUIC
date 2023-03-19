@@ -44,7 +44,11 @@ public class QliftUIParser: NSObject {
     }
 
     private func node2Swift(node: Node) -> String {
-        var swiftUI = "import Qlift\n\n\n"
+        var swiftUI = "import Qlift\n"
+        if localizable {
+            swiftUI += "import Foundation\n"
+        }
+        swiftUI += "\n\n"
         let ui = node.children[0].children
         let rootWidgetNode: Node = ui.first(where: { $0.text == "widget"})!
 
@@ -194,18 +198,18 @@ public class QliftUIParser: NSObject {
             case "leftMargin", "topMargin", "rightMargin", "bottomMargin":
                 break
             case "pixmap":
-                ui += "        \(node.parent!.attributes["name"]!).setPixmap(QPixmap(fileName: \(propertyNode2Swift(node: node.children[0]))))\n"
+                ui += "        \(node.parent!.attributes["name"]!).setPixmap(QPixmap(fileName: \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))))\n"
             case "iconSize":
-                ui += "        \(node.parent!.attributes["name"]!).setIconSize(\(propertyNode2Swift(node: node.children[0])))\n"
+                ui += "        \(node.parent!.attributes["name"]!).setIconSize(\(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!)))\n"
             case "autoFillBackground":
-                ui += "        \(node.parent!.attributes["name"]!).autoFillBackground = \(propertyNode2Swift(node: node.children[0]))\n"
+                ui += "        \(node.parent!.attributes["name"]!).autoFillBackground = \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))\n"
             case "flat":
-                ui += "        \(node.parent!.attributes["name"]!).isFlat = \(propertyNode2Swift(node: node.children[0]))\n"
+                ui += "        \(node.parent!.attributes["name"]!).isFlat = \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))\n"
             default:
                 if node.parent!.text == "item" {
-                    ui += "        \(node.parent!.parent!.attributes["name"]!).add(item: \(propertyNode2Swift(node: node.children[0])))\n"
+                    ui += "        \(node.parent!.parent!.attributes["name"]!).add(item: \(propertyNode2Swift(node: node.children[0], for: node.parent!.parent!.attributes["name"]!)))\n"
                 } else {
-                    ui += "        \(node.parent!.attributes["name"]!).\(node.attributes["name"]!) = \(propertyNode2Swift(node: node.children[0]))\n"
+                    ui += "        \(node.parent!.attributes["name"]!).\(node.attributes["name"]!) = \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))\n"
                 }
             }
         case "addaction":
@@ -437,7 +441,7 @@ public class QliftUIParser: NSObject {
         }
     }
 
-    private func propertyNode2Swift(node: Node) -> String {
+    private func propertyNode2Swift(node: Node, for name: String) -> String {
         switch node.text {
         case "string":
             guard
@@ -449,19 +453,13 @@ public class QliftUIParser: NSObject {
                 print("Translatable string contains control characters", to: &stderror)
                 fallthrough
             }
-            if let comment = node.attributes["extracomment"] ?? node.parent?.parent?.attributes["name"] {
-                if let oldComment = lstrings[node.value] {
-                    lstrings[node.value] = oldComment + ", " + comment
-                } else {
-                    lstrings[node.value] = comment
-                }
-                return "NSLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", bundle: Bundle.lang, comment: \"\(comment)\")"
+            let comment = node.attributes["extracomment"] ?? name
+            if let oldComment = lstrings[node.value] {
+                lstrings[node.value] = oldComment + ", " + comment
             } else {
-                if lstrings[node.value] == nil {
-                    lstrings[node.value] = ""
-                }
-                return "NSLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", bundle: Bundle.lang)"
+                lstrings[node.value] = comment
             }
+            return "NSLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", bundle: Bundle.lang, comment: \"\(comment)\")"
         case "pixmap":
             if node.value.contains("\n") ||
                 node.value.contains("\"")

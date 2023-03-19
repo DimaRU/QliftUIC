@@ -18,5 +18,10 @@ let package = Package(
             capability: .buildTool(),
             dependencies: ["qlift-uic"]
         ),
+        .plugin(
+            name: "QliftUICL10nPlugin",
+            capability: .buildTool(),
+            dependencies: ["qlift-uic"]
+        ),
     ]
 )
