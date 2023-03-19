@@ -1,9 +1,13 @@
-// swift-tools-version:5.3
-
+// swift-tools-version: 5.6
 import PackageDescription
 
 let package = Package(
     name: "QliftUIC",
+    products: [
+        .executable(name: "qlift-uic", targets: ["qlift-uic"]),
+        .plugin(name: "QliftUICPlugin", targets: ["QliftUICPlugin"]),
+        .plugin(name: "QliftUICL10nPlugin", targets: ["QliftUICL10nPlugin"]),
+    ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.0"),
     ],
@@ -23,5 +27,6 @@ let package = Package(
             capability: .buildTool(),
             dependencies: ["qlift-uic"]
         ),
+
     ]
 )
