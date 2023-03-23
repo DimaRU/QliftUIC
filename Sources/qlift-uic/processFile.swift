@@ -31,7 +31,7 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
     } else {
         content = """
     /********************************************************************************
-    ** Form generated from reading UI file '\(input.lastPathComponent)'
+    ** Code generated from UI file '\(input.lastPathComponent)'
     **
     ** Created by: Qlift User Interface Compiler version <undefined>
     **

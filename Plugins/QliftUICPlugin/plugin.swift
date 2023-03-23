@@ -14,7 +14,9 @@ struct UICPlugin: BuildToolPlugin {
                     "Generating \(outputName) from \($0.path.lastComponent)",
                 executable:
                     try context.tool(named: "qlift-uic").path,
-                arguments: [ "\($0.path)", "-o", "\(context.pluginWorkDirectory)" ],
+                arguments: [ "\($0.path)",
+                             "--output-directory",
+                             "\(context.pluginWorkDirectory)" ],
                 inputFiles: [ $0.path ],
                 outputFiles: [ outputPath ]
             )

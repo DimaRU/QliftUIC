@@ -46,15 +46,22 @@ brew install DimaRU/formulae/qlift-uic
 ## Command line USAGE
 
 ```
-USAGE: qlift-uic [<file> ...] [--verbose] [--output-directory <path>]
+USAGE: qlift-uic <file> ... [--verbose] [--code] [--localizable] [--strings] [--extension] [--output-directory <path>]
 
 ARGUMENTS:
   <file>                  UI file to compile.
 
 OPTIONS:
   -v, --verbose           Verbose output
+  --code/--localizable/--strings/--extension
+                          Output Behaviour (default: --code)
+        Explanation:
+        --code: Generate UI code
+        --localizable: Generate localizable UI code
+        --strings: Generate .strings files
+        --extension: Generate localization resource accessor extension
   -o, --output-directory <path>
-                          The output path for generated .swift files.
+                          The output path for generated files.
         By default generated files written to current directory.
   --version               Show the version.
   -h, --help              Show help information.

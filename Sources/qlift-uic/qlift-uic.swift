@@ -17,12 +17,21 @@ struct QliftUIC: ParsableCommand {
     @Flag(name: .shortAndLong, help: "Verbose output")
     var verbose = false
 
-    @Flag(name: .shortAndLong, help: "Generate localizable code")
-    var localizable = false
+    enum OutputBehaviour: String, EnumerableFlag {
+        case code, localizable, strings, `extension`
+    }
 
-    @Flag(name: .shortAndLong, help: "Generate .strings files")
-    var strings = false
-
+    @Flag(exclusivity: .exclusive,
+          help: .init("Output Behaviour",
+          discussion: """
+            Explanation:
+            --code: Generate UI code
+            --localizable: Generate localizable UI code
+            --strings: Generate .strings files
+            --extension: Generate localization resource accessor extension
+            """))
+    var outputBehaviour: OutputBehaviour = .code
+          
     @Option(name: .shortAndLong,
             help: ArgumentHelp("The output path for generated files.",
             discussion: "By default generated files written to current directory.",
@@ -48,8 +57,9 @@ struct QliftUIC: ParsableCommand {
             throw ExitCode.failure
         }
         
-        if strings {
-            localizable = true
+        if outputBehaviour == .extension {
+            try generateExtensionFile(outputDir: outputURL, verbose: verbose)
+            return
         }
         for input in file {
             let outputFile = input.deletingPathExtension().lastPathComponent
@@ -57,8 +67,47 @@ struct QliftUIC: ParsableCommand {
             try processFile(input: input,
                             output: output,
                             verbose: verbose,
-                            localizable: localizable,
-                            strings: strings)
+                            localizable: outputBehaviour == .localizable,
+                            strings: outputBehaviour == .strings)
+        }
+    }
+    
+    func generateExtensionFile(outputDir: URL, verbose: Bool) throws {
+        let content = """
+import Foundation
+
+@inlinable
+func QTLocalizedString(_ s: String, tableName: String?, comment: String) -> String {
+    NSLocalizedString(s, tableName: tableName, bundle: Bundle.lang, comment: comment)
+}
+
+extension Bundle {
+    @usableFromInline
+    static let lang: Bundle = {
+        let lang = Locale.current.languageCode ?? "en"
+        guard
+            let path = Bundle.module.path(forResource: lang, ofType: "lproj"),
+            let bundle = Bundle(path: path)
+        else {
+            fatalError("could not load language bundle")
+        }
+        return bundle
+    }()
+}
+"""
+
+        let outputURL = outputDir.appendingPathComponent("language_bundle_accessor.swift")
+
+        do {
+            try content.write(to: outputURL,
+                              atomically: false,
+                              encoding: .utf8)
+        } catch  {
+            print("Write error \(outputURL.absoluteString) \(error.localizedDescription)", to: &stderror)
+            throw ExitCode.failure
+        }
+        if verbose {
+            print("Created file \(outputURL.path)")
         }
     }
 }
