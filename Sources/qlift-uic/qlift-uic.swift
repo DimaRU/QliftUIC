@@ -89,7 +89,7 @@ extension Bundle {
             let path = Bundle.module.path(forResource: lang, ofType: "lproj"),
             let bundle = Bundle(path: path)
         else {
-            fatalError("could not load language bundle")
+            return Bundle.module
         }
         return bundle
     }()
