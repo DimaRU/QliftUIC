@@ -10,7 +10,7 @@ struct RccCommandPlugin: CommandPlugin {
         pathList += ":/opt/homebrew/share/qt/libexec"
         #endif
         #if arch(x86_64)
-        pathList += ":/usr/share/qt/libexec"
+        pathList += ":/usr/local/share/qt/libexec"
         #endif
         #endif
         for path in pathList.split(separator: ":") {
@@ -40,7 +40,7 @@ struct RccCommandPlugin: CommandPlugin {
             return false
         }
     }
-    
+
     func searchQRC(in directory: String) -> URL? {
         let manager = FileManager.default
         let resourceKeys = Set<URLResourceKey>([.nameKey, .pathKey])
@@ -51,7 +51,7 @@ struct RccCommandPlugin: CommandPlugin {
         }
         return nil
     }
-    
+
     func performCommand(context: PluginContext,
                         targets: [Target],
                         arguments: [String]
@@ -80,7 +80,7 @@ import Qlift
 import Foundation
 
 extension Bundle {
-    
+
     class func registerResource() {
         guard
             let rccFilename = Bundle.module.path(forResource: "\(stem)", ofType: "rcc"),
@@ -91,6 +91,7 @@ extension Bundle {
     }
 
 }
+
 """
             let accessorPath = target.directory.appending("qt_resource_accessor.swift").string
             try accessor.write(to: URL(fileURLWithPath: accessorPath), atomically: true, encoding: .utf8)
@@ -104,6 +105,6 @@ extension Bundle {
         let targets = targetNames.isEmpty
             ? context.package.targets
             : try context.package.targets(named: targetNames)
-        try performCommand(context: context, targets: targets, arguments: arguments)
+        try performCommand(context: context, targets: targets, arguments: argExtractor.remainingArguments)
     }
 }

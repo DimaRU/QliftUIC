@@ -30,13 +30,13 @@ struct UicCmdPlugin: CommandPlugin {
             let fileList = target.sourceFiles(withSuffix: "ui").map { $0.path.string }
             guard !fileList.isEmpty else { continue }
             
-            let outputDir = Path("Generated").appending(target.name).appending("base.lproj").string
+            let outputDir = target.directory.appending(["Resources", "base.lproj"]).string
             var runArgs = fileList
             runArgs += ["--output-directory", outputDir]
             runArgs += arguments
 
             if try runTool(context: context, arguments: runArgs) {
-                print("Generated code at \(outputDir).")
+                print("Generated .strings at \(outputDir).")
             }
         }
     }
@@ -51,13 +51,13 @@ struct UicCmdPlugin: CommandPlugin {
             let fileList = target.sourceFiles(withSuffix: "ui").map { $0.path.string }
             guard !fileList.isEmpty else { continue }
 
-            let outputDir = Path("Generated").appending(target.name).appending("Source").string
+            let outputDir = context.pluginWorkDirectory.appending(target.name).string
             var runArgs = fileList
             runArgs += ["--output-directory", outputDir]
             runArgs += arguments
 
             if try runTool(context: context, arguments: runArgs) {
-                print("Generated strings at \(outputDir).")
+                print("Generated UI code at \(outputDir).")
             }
         }
     }
@@ -71,7 +71,7 @@ struct UicCmdPlugin: CommandPlugin {
             let fileList = target.sourceFiles(withSuffix: "ui").map { $0.path.string }
             guard !fileList.isEmpty else { continue }
 
-            let outputDir = Path("Generated").appending(target.name).appending("Source").string
+            let outputDir = target.directory.string
             var runArgs = ["--output-directory", outputDir]
             runArgs += arguments
 
@@ -88,8 +88,9 @@ struct UicCmdPlugin: CommandPlugin {
         let targets = targetNames.isEmpty
             ? context.package.targets
             : try context.package.targets(named: targetNames)
+        let remainingArguments = argExtractor.remainingArguments
         for flag in OutputBehaviour.allCases {
-            if argExtractor.extractFlag(named: flag.rawValue) != 0 {
+            if argExtractor.unextractedOptionsOrFlags.contains("--" + flag.rawValue) {
                 outputBehaviour = flag
                 break
             }
@@ -100,12 +101,11 @@ struct UicCmdPlugin: CommandPlugin {
         }
         switch outputBehaviour {
         case .code, .localizable:
-            try performCodeCommand(context: context, targets: targets, arguments: arguments)
-            try performCodeCommand(context: context, targets: targets, arguments: arguments)
+            try performCodeCommand(context: context, targets: targets, arguments: remainingArguments)
         case .strings:
-            try performStringsCommand(context: context, targets: targets, arguments: arguments)
+            try performStringsCommand(context: context, targets: targets, arguments: remainingArguments)
         case .extension:
-            try performExtCommand(context: context, targets: targets, arguments: arguments)
+            try performExtCommand(context: context, targets: targets, arguments: remainingArguments)
         }
     }
 }

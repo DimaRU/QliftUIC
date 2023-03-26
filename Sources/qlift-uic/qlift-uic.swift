@@ -74,13 +74,17 @@ struct QliftUIC: ParsableCommand {
             try processFile(input: input,
                             output: output,
                             verbose: verbose,
-                            localizable: outputBehaviour == .localizable,
+                            localizable: outputBehaviour != .code,
                             strings: outputBehaviour == .strings)
         }
     }
     
     func generateExtensionFile(outputDir: URL, verbose: Bool) throws {
         let content = """
+////
+///  language_bundle_accessor.swift
+//
+
 import Foundation
 
 @inlinable
@@ -101,6 +105,7 @@ extension Bundle {
         return bundle
     }()
 }
+
 """
 
         let outputURL = outputDir.appendingPathComponent("language_bundle_accessor.swift")
