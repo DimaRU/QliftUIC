@@ -9,8 +9,6 @@ let package = Package(
         .plugin(name: "QliftUICL10nPlugin", targets: ["QliftUICL10nPlugin"]),
         .plugin(name: "QliftUICCommandPlugin", targets: ["QliftUICCommandPlugin"]),
         .plugin(name: "RccCommandPlugin", targets: ["RccCommandPlugin"]),
-        .executable(name: "generatepc", targets: ["generatepc"]),
-        .plugin(name: "GeneratePCPlugin", targets: ["GeneratePCPlugin"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.0"),
@@ -47,16 +45,25 @@ let package = Package(
             ),
             dependencies: ["qlift-uic"]
         ),
-        .executableTarget(
-            name: "generatepc",
-            dependencies: [
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            ]),
-        .plugin(
-            name: "GeneratePCPlugin",
-            capability: .command(
-                intent: .custom(verb: "genpc", description: "Generate pkg-config files for macOS Qt6")),
-            dependencies: ["generatepc"]
-        ),
     ]
 )
+
+#if os(macOS)
+package.products.append(contentsOf: [
+    .executable(name: "generatepc", targets: ["generatepc"]),
+    .plugin(name: "GeneratePCPlugin", targets: ["GeneratePCPlugin"]),
+])
+package.targets.append(contentsOf: [
+    .executableTarget(
+        name: "generatepc",
+        dependencies: [
+            .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        ]),
+    .plugin(
+        name: "GeneratePCPlugin",
+        capability: .command(
+            intent: .custom(verb: "genpc", description: "Generate pkg-config files for macOS Qt6")),
+        dependencies: ["generatepc"]
+    ),
+])
+#endif

@@ -8,9 +8,9 @@ import ArgumentParser
 
 @main
 struct generatepc: ParsableCommand {
-    static var configuration = CommandConfiguration(commandName: "generatepc",
+    static var configuration = CommandConfiguration(commandName: "genpc",
                                                     abstract: "Generate pkg-config files for macOS Qt6.",
-                                                    version: "0.0.1")
+                                                    version: "1.0.0")
     @Argument(help: "Qt installation path.", transform: { URL(fileURLWithPath: $0) })
     var qtPath: URL
 
@@ -40,8 +40,7 @@ struct generatepc: ParsableCommand {
         let libPath = qtPath.appendingPathComponent("lib")
         do {
             frameworkList = try fileManager.contentsOfDirectory(at: libPath, includingPropertiesForKeys: []).filter{ $0.pathExtension == "framework"}
-            
-        } catch  {
+        } catch {
             print("Can't get directory contents: \(libPath): \(error.localizedDescription)", to: &stderror)
             throw ExitCode.failure
         }
@@ -57,7 +56,7 @@ struct generatepc: ParsableCommand {
                 try content.write(to: outputURL,
                                   atomically: false,
                                   encoding: .utf8)
-            } catch  {
+            } catch {
                 print("Write error \(outputURL.path) \(error.localizedDescription)", to: &stderror)
                 throw ExitCode.failure
             }
