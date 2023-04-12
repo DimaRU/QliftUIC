@@ -5,6 +5,7 @@ let package = Package(
     name: "QliftUIC",
     products: [
         .executable(name: "qlift-uic", targets: ["qlift-uic"]),
+        .executable(name: "generatepc", targets: ["generatepc"]),
         .plugin(name: "QliftUICPlugin", targets: ["QliftUICPlugin"]),
         .plugin(name: "QliftUICL10nPlugin", targets: ["QliftUICL10nPlugin"]),
         .plugin(name: "QliftUICCommandPlugin", targets: ["QliftUICCommandPlugin"]),
@@ -16,6 +17,11 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "qlift-uic",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]),
+        .executableTarget(
+            name: "generatepc",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]),
@@ -36,6 +42,13 @@ let package = Package(
                 permissions: [.writeToPackageDirectory(reason: "Add localization strings and accessor code")]
             ),
             dependencies: ["qlift-uic"]
+        ),
+        .plugin(
+            name: "GeneratePCPlugin",
+            capability: .command(
+                intent: .custom(verb: "genpc", description: "Generate pkg-config files for macOS Qt6")
+            ),
+            dependencies: ["generatepc"]
         ),
         .plugin(
             name: "RccCommandPlugin",
