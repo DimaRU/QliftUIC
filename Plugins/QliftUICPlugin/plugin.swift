@@ -15,6 +15,7 @@ struct UICPlugin: BuildToolPlugin {
                 executable:
                     try context.tool(named: "qlift-uic").path,
                 arguments: [ "\($0.path)",
+                             "--code",
                              "--output-directory",
                              "\(context.pluginWorkDirectory)" ],
                 inputFiles: [ $0.path ],
