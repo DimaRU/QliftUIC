@@ -378,6 +378,14 @@ public class QliftUIParser: NSObject {
             }
         case "spacer":
             ui += spacerNode2Swift(node: node)
+        case "zorder":
+            let name: String
+            if node.value == "layoutWidget" {
+                name = node.parent?.children.first(where: { $0.attributes["name"]!.hasPrefix("layoutWidget") })?.attributes["name"] ?? ""
+            } else {
+                name = node.value
+            }
+            ui += "        \(name).raise()\n"
         case "attribute":
             if node.attributes["name"] == "buttonGroup", let group = node.children.first?.value {
                 ui += "        \(group).addButton(\(node.parent!.attributes["name"]!))\n"
