@@ -435,9 +435,7 @@ public class QliftUIParser: NSObject {
     private func propertyNode2Swift(node: Node) -> String {
         switch node.text {
         case "string", "pixmap":
-            if node.attributes.first?.key == "notr" &&
-                node.attributes.first?.value == "true" ||
-                node.value.contains("\"")
+            if node.value.contains("\"") || node.value.contains("\n")
             {
                 return "\"\"\"\n" + node.value + "\n\"\"\""
             } else {
