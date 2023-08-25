@@ -1,24 +1,37 @@
 import Foundation
 import ArgumentParser
 
-func processFile(input: URL, output: URL, verbose: Bool) throws {
+func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, strings: Bool) throws {
     let xml: Data
     do {
         xml =  try Data(contentsOf: input)
     } catch {
-        print("Error read \(input.path): \(error.localizedDescription)")
+        print("Error read \(input.path): \(error.localizedDescription)", to: &stderror)
         throw ExitCode.failure
     }
 
     let parser = QliftUIParser()
-    guard let ui = parser.parseUI(data: xml) else {
-        print("XML invalid: \(input.path)")
+    let (swiftCode, lstrings) = parser.parseUI(data: xml,
+                                               fileName: output.lastPathComponent,
+                                               localizable: localizable)
+    guard let swiftCode = swiftCode else {
+        print("XML invalid: \(input.path)", to: &stderror)
         throw ExitCode.failure
     }
+
+    var content = ""
     
-    var content = """
+    if strings {
+        for (key,value) in lstrings {
+            if !value.isEmpty {
+                content += "/* \(value) */\n"
+            }
+            content += "\"\(key)\" = \"\";\n\n"
+        }
+    } else {
+        content = """
     /********************************************************************************
-    ** Form generated from reading UI file '\(input.lastPathComponent)'
+    ** Code generated from UI file '\(input.lastPathComponent)'
     **
     ** Created by: Qlift User Interface Compiler version <undefined>
     **
@@ -27,15 +40,19 @@ func processFile(input: URL, output: URL, verbose: Bool) throws {
 
 
     """
-    content += ui
+        content += swiftCode
+    }
 
+    let outputURL = output.appendingPathExtension(strings ? "strings" : "swift")
     do {
-        try content.write(to: output, atomically: false, encoding: .utf8)
+        try content.write(to: outputURL,
+                          atomically: false,
+                          encoding: .utf8)
     } catch  {
-        print("Write error \(output.path) \(error.localizedDescription)")
+        print("Write error \(output.path) \(error.localizedDescription)", to: &stderror)
         throw ExitCode.failure
     }
     if verbose {
-        print("Created file \(output.path)")
+        print("Created file \(outputURL.path)")
     }
 }

@@ -4,7 +4,7 @@ import FoundationXML
 #endif
 
 fileprivate class Node {
-    weak var parent: Node?
+    unowned var parent: Node?
     var text: String
     var children = [Node]()
     var value: String = ""
@@ -28,14 +28,19 @@ public class QliftUIParser: NSObject {
     private var namesOfQMenusForAddAction = [String]()
     private var widgetCount = 1
     private var tabTitle = ""
+    private var localizable = false
+    private var lstrings: [String: String] = [:]
+    private var fileName: String = ""
 
-
-    public func parseUI(data: Data) -> String? {
+    public func parseUI(data: Data, fileName: String, localizable: Bool) -> (String?, [String: String]) {
+        self.localizable = localizable
+        self.fileName = fileName
         let parser = XMLParser(data: data)
         parser.delegate = self
 
-        guard parser.parse() else { return nil }
-        return node2Swift(node: rootNode)
+        guard parser.parse() else { return (nil, [:]) }
+        let swiftCode = node2Swift(node: rootNode)
+        return (swiftCode, lstrings)
     }
 
     private func node2Swift(node: Node) -> String {
@@ -189,18 +194,18 @@ public class QliftUIParser: NSObject {
             case "leftMargin", "topMargin", "rightMargin", "bottomMargin":
                 break
             case "pixmap":
-                ui += "        \(node.parent!.attributes["name"]!).setPixmap(QPixmap(fileName: \(propertyNode2Swift(node: node.children[0]))))\n"
+                ui += "        \(node.parent!.attributes["name"]!).setPixmap(QPixmap(fileName: \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))))\n"
             case "iconSize":
-                ui += "        \(node.parent!.attributes["name"]!).setIconSize(\(propertyNode2Swift(node: node.children[0])))\n"
+                ui += "        \(node.parent!.attributes["name"]!).setIconSize(\(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!)))\n"
             case "autoFillBackground":
-                ui += "        \(node.parent!.attributes["name"]!).autoFillBackground = \(propertyNode2Swift(node: node.children[0]))\n"
+                ui += "        \(node.parent!.attributes["name"]!).autoFillBackground = \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))\n"
             case "flat":
-                ui += "        \(node.parent!.attributes["name"]!).isFlat = \(propertyNode2Swift(node: node.children[0]))\n"
+                ui += "        \(node.parent!.attributes["name"]!).isFlat = \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))\n"
             default:
                 if node.parent!.text == "item" {
-                    ui += "        \(node.parent!.parent!.attributes["name"]!).add(item: \(propertyNode2Swift(node: node.children[0])))\n"
+                    ui += "        \(node.parent!.parent!.attributes["name"]!).add(item: \(propertyNode2Swift(node: node.children[0], for: node.parent!.parent!.attributes["name"]!)))\n"
                 } else {
-                    ui += "        \(node.parent!.attributes["name"]!).\(node.attributes["name"]!) = \(propertyNode2Swift(node: node.children[0]))\n"
+                    ui += "        \(node.parent!.attributes["name"]!).\(node.attributes["name"]!) = \(propertyNode2Swift(node: node.children[0], for: node.parent!.attributes["name"]!))\n"
                 }
             }
         case "addaction":
@@ -296,7 +301,7 @@ public class QliftUIParser: NSObject {
                     case 15?: area = ".All"
                     default:
                         area = ""
-                        print("Unknown dock area")
+                        print("Unknown dock area", to: &stderror)
                 }
                 ui += "        \(node.parent!.attributes["name"]!).add(dockWidget: \(node.attributes["name"]!), area: \(area))\n"
 
@@ -440,10 +445,28 @@ public class QliftUIParser: NSObject {
         }
     }
 
-    private func propertyNode2Swift(node: Node) -> String {
+    private func propertyNode2Swift(node: Node, for name: String) -> String {
         switch node.text {
-        case "string", "pixmap":
-            if node.value.contains("\"") || node.value.contains("\n")
+        case "string":
+            guard
+                localizable,
+                node.attributes["notr"] != "true",
+                !node.value.isEmpty
+            else { fallthrough }
+            if node.value.rangeOfCharacter(from: .controlCharacters, options: .literal) != nil {
+                print("Translatable string contains control characters", to: &stderror)
+                fallthrough
+            }
+            let comment = node.attributes["extracomment"] ?? name
+            if let oldComment = lstrings[node.value] {
+                lstrings[node.value] = oldComment + ", " + comment
+            } else {
+                lstrings[node.value] = comment
+            }
+            return "QTLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", comment: \"\(comment)\")"
+        case "pixmap":
+            if node.value.contains("\n") ||
+                node.value.contains("\"")
             {
                 return "\"\"\"\n" + node.value + "\n\"\"\""
             } else {
@@ -484,7 +507,7 @@ public class QliftUIParser: NSObject {
                     case "height":
                         height = Int(child.value)!
                     default:
-                        print("unknown rect:", child.text)
+                        print("unknown rect:", child.text, to: &stderror)
                 }
             }
             return "QRect(x: \(x), y: \(y), width: \(width), height: \(height))"
@@ -499,7 +522,7 @@ public class QliftUIParser: NSObject {
                 case "height":
                     height = Int(child.value)!
                 default:
-                    print("unknown size:", child.text)
+                    print("unknown size:", child.text, to: &stderror)
                 }
             }
             return "QSize(width: \(width), height: \(height))"
