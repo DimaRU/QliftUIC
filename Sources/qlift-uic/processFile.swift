@@ -26,7 +26,7 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
             if !value.isEmpty {
                 content += "/* \(value) */\n"
             }
-            content += "\"\(key)\" = \"\";\n\n"
+            content += "\"\(key)\" = \"\(key)\";\n\n"
         }
     } else {
         content = """
@@ -44,6 +44,10 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
     }
 
     let outputURL = output.appendingPathExtension(strings ? "strings" : "swift")
+    guard !content.isEmpty else {
+        print("Empty file \(output.path) is't created", to: &stderror)
+        return
+    }
     do {
         try content.write(to: outputURL,
                           atomically: false,
@@ -53,6 +57,6 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
         throw ExitCode.failure
     }
     if verbose {
-        print("Created file \(outputURL.path)")
+        print("Created file \(outputURL.path)", to: &stderror)
     }
 }

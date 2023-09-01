@@ -44,7 +44,12 @@ public class QliftUIParser: NSObject {
     }
 
     private func node2Swift(node: Node) -> String {
-        var swiftUI = "import Qlift\n\n\n"
+        var swiftUI = "import Qlift\n"
+        if localizable {
+            swiftUI += "import class Foundation.Bundle\nimport func Foundation.NSLocalizedString\n"
+        }
+        swiftUI += "\n\n"
+        
         let ui = node.children[0].children
         let rootWidgetNode: Node = ui.first(where: { $0.text == "widget"})!
 
@@ -463,7 +468,7 @@ public class QliftUIParser: NSObject {
             } else {
                 lstrings[node.value] = comment
             }
-            return "QTLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", comment: \"\(comment)\")"
+            return "NSLocalizedString(\"\(node.value)\", tableName: \"\(fileName)\", bundle: Bundle.lang, comment: \"\(comment)\")"
         case "pixmap":
             if node.value.contains("\n") ||
                 node.value.contains("\"")

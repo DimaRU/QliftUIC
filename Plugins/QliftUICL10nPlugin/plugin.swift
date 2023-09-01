@@ -18,7 +18,7 @@ struct UICPlugin: BuildToolPlugin {
                 try context.tool(named: "qlift-uic").path,
             arguments:
                 (inputFiles.map { $0.string }) +
-                [ "--localizable",
+                [ "--localizable-code",
                   "--output-directory", "\(context.pluginWorkDirectory)" ],
             inputFiles: inputFiles,
             outputFiles: outputFiles
