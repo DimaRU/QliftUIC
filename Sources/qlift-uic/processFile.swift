@@ -23,10 +23,13 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
     
     if strings {
         for (key,value) in lstrings {
-            if !value.isEmpty {
+            let localizable = value.value.replacingOccurrences(of: #"""#, with: #"\""#)
+            if !value.comment.isEmpty {
                 content += "/* \(value) */\n"
+            } else {
+                content += "/* No comment provided by engineer. */\n"
             }
-            content += "\"\(key)\" = \"\(key)\";\n\n"
+            content += #""\#(key)" = "\#(localizable)";\#n\#n"#
         }
     } else {
         content = """
