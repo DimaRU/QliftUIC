@@ -4,7 +4,11 @@ import Foundation
 @main
 struct UicCmdPlugin: CommandPlugin {
     enum OutputBehaviour: String, CaseIterable {
-        case code, localizable, strings, `extension`
+        case code
+        case localizable = "localizable-code"
+        case strings
+        case `extension`
+        case help
     }
 
     private func runTool(context: PluginContext, arguments: [String]) throws -> Bool {
@@ -95,17 +99,15 @@ struct UicCmdPlugin: CommandPlugin {
                 break
             }
         }
-        guard let outputBehaviour = outputBehaviour else {
-            Diagnostics.error("One of the flags must be specified: --code/--localizable/--strings/--extension")
-            return
-        }
-        switch outputBehaviour {
+        switch outputBehaviour ?? .help {
         case .code, .localizable:
             try performCodeCommand(context: context, targets: targets, arguments: remainingArguments)
         case .strings:
             try performStringsCommand(context: context, targets: targets, arguments: remainingArguments)
         case .extension:
             try performExtCommand(context: context, targets: targets, arguments: remainingArguments)
+        case .help:
+            let _ = try runTool(context: context, arguments: ["--help"])
         }
     }
 }

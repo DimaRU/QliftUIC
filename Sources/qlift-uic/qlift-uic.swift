@@ -9,7 +9,7 @@ import ArgumentParser
 @main
 struct QliftUIC: ParsableCommand {
     static var configuration = CommandConfiguration(commandName: "qlift-uic",
-                                                    abstract: "Generate Swift code from Qt5 user interfaces.",
+                                                    abstract: "Generate Swift code from Qt user interfaces.",
                                                     version: "0.0.1")
     @Argument(help: "UI file to compile.", transform: { URL(fileURLWithPath: $0) })
     var file: [URL] = []
@@ -18,7 +18,7 @@ struct QliftUIC: ParsableCommand {
     var verbose = false
 
     enum OutputBehaviour: String, EnumerableFlag {
-        case code, localizable, strings, `extension`
+        case code, localizableCode, strings, `extension`
     }
 
     @Flag(exclusivity: .exclusive,
@@ -26,7 +26,7 @@ struct QliftUIC: ParsableCommand {
               discussion: """
                 Explanation:
                 --code: Generate UI code
-                --localizable: Generate localizable UI code
+                --localizable-code: Generate localizable UI code
                 --strings: Generate .strings files
                 --extension: Generate localization resource accessor extension
                 """))
@@ -45,7 +45,7 @@ struct QliftUIC: ParsableCommand {
         let outputURL = URL(fileURLWithPath: outputPath)
 
         guard outputBehaviour != nil else {
-            throw ValidationError("One of the flags must be specified: --code/--localizable/--strings/--extension")
+            throw ValidationError("One of the flags must be specified: --code/--localizable-code/--strings/--extension")
         }
         if outputBehaviour == .extension {
             try generateExtensionFile(outputDir: outputURL, verbose: verbose)
@@ -86,11 +86,6 @@ struct QliftUIC: ParsableCommand {
 //
 
 import Foundation
-
-@inlinable
-func QTLocalizedString(_ s: String, tableName: String?, comment: String) -> String {
-    NSLocalizedString(s, tableName: tableName, bundle: Bundle.lang, comment: comment)
-}
 
 extension Bundle {
     @usableFromInline

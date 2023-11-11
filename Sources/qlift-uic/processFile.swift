@@ -23,10 +23,13 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
     
     if strings {
         for (key,value) in lstrings {
-            if !value.isEmpty {
+            let localizable = value.value.replacingOccurrences(of: #"""#, with: #"\""#)
+            if !value.comment.isEmpty {
                 content += "/* \(value) */\n"
+            } else {
+                content += "/* No comment provided by engineer. */\n"
             }
-            content += "\"\(key)\" = \"\";\n\n"
+            content += #""\#(key)" = "\#(localizable)";\#n\#n"#
         }
     } else {
         content = """
@@ -44,6 +47,10 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
     }
 
     let outputURL = output.appendingPathExtension(strings ? "strings" : "swift")
+    guard !content.isEmpty else {
+        print("Empty file \(output.path) is't created", to: &stderror)
+        return
+    }
     do {
         try content.write(to: outputURL,
                           atomically: false,
@@ -53,6 +60,6 @@ func processFile(input: URL, output: URL, verbose: Bool, localizable: Bool, stri
         throw ExitCode.failure
     }
     if verbose {
-        print("Created file \(outputURL.path)")
+        print("Created file \(outputURL.path)", to: &stderror)
     }
 }
